@@ -1,7 +1,6 @@
 from turtle import Turtle, Screen, pendown, penup, width
 import random
 
-
 class Brick(Turtle):
     def __init__(self, location:tuple, width:int) -> None:
         super().__init__()
@@ -79,26 +78,33 @@ class Ball(Turtle):
         self.screen = self.getscreen()
 
     def wall_hit(self):
-        # Check if ball has struck the wall
+        # Check if ball has struck a side wall
         boundary = self.screen.window_width() / 2 - 10
         if abs(self.xcor()) >= boundary:
             return True
         return False
     
     def paddle_hit(self, paddle:Paddle):
-        x, y = self.position()
-        boundary_y = paddle.ycor() + 20
-        if self.ycor() <= boundary_y:
-            if self.xcor() >= paddle.xcor() - paddle.width * 20 / 2:
-                if self.xcor() <= paddle.xcor() + paddle.width * 20 / 2:
-                    return True
+        if self.heading() > 180:
+            boundary_y = paddle.ycor() + 22
+            if self.ycor() <= boundary_y:
+                if self.xcor() >= paddle.xcor() - paddle.width * 20 / 2:
+                    if self.xcor() <= paddle.xcor() + paddle.width * 20 / 2:
+                        return True
         return False
 
     def move(self, paddle):
+        """Move the ball"""
         if self.wall_hit():
             self.setheading(180 + (360 - self.heading()))
         if self.paddle_hit(paddle):
-            self.setheading(90 - (self.heading() - 270))
-        self.forward(5)
+            self.setheading(self.calulate_return_angle(paddle=paddle))
+        self.forward(1)
 
-    
+    def calulate_return_angle(self, paddle:Paddle):
+        """Determine angle based on the x location struck on the paddle"""
+        paddle_x = paddle.xcor()
+        ball_difference = self.xcor() - paddle_x
+        half_paddle = paddle.width * 20 / 2
+        angle_offset = 90 * ball_difference/half_paddle
+        return 90 - (self.heading() - 270) - angle_offset
